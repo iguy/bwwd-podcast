@@ -66,6 +66,10 @@ if (!cues && ep.data.transcriptUrl) {
     console.warn(`Could not fetch transcript for ${ep.slug}:`, e);
   }
 }
+
+// Serialize cues to plain JSON for the client script (avoids embedding
+// them as DOM data-attributes we'd have to re-parse unreliably).
+const cuesJson = cues ? JSON.stringify(cues) : 'null';
 ---
 <Layout title={`${ep.data.title} — Better World With Design`}>
   <a href="/" class="back-link">&larr; All episodes</a>
@@ -103,7 +107,7 @@ if (!cues && ep.data.transcriptUrl) {
       <summary>Transcript <span class="sync-badge">synced to playback</span></summary>
       <div class="transcript-body" id="transcript-cues">
         {cues.map((cue, i) => (
-          <span class="cue" data-start={cue.start} data-end={cue.end}>{cue.text} </span>
+          <span class="cue" data-cue-index={i}>{cue.text} </span>
         ))}
       </div>
     </details>
@@ -169,29 +173,35 @@ if (!cues && ep.data.transcriptUrl) {
     .cue.active { background-color: rgba(168, 131, 74, 0.35); }
   </style>
 
-  {cues && (
-    <script>
-      const audio = document.getElementById('ep-audio') as HTMLAudioElement | null;
-      const cueEls = Array.from(document.querySelectorAll<HTMLElement>('#transcript-cues .cue'));
+  <script define:vars={{ cuesJson }}>
+    // Plain JS only — this block must stay free of TypeScript syntax
+    // (type annotations, "as" casts, generics) since it's rendered as
+    // a literal script tag, not compiled by Astro's TS pipeline.
+    var cues = JSON.parse(cuesJson);
+    if (cues) {
+      var audio = document.getElementById('ep-audio');
+      var cueEls = Array.prototype.slice.call(document.querySelectorAll('#transcript-cues .cue'));
       if (audio && cueEls.length) {
-        let activeEl: HTMLElement | null = null;
-        audio.addEventListener('timeupdate', () => {
-          const t = audio.currentTime;
-          const current = cueEls.find(el => {
-            const start = parseFloat(el.dataset.start || '0');
-            const end = parseFloat(el.dataset.end || '0');
-            return t >= start && t < end;
-          }) || null;
+        var activeEl = null;
+        audio.addEventListener('timeupdate', function () {
+          var t = audio.currentTime;
+          var current = null;
+          for (var i = 0; i < cues.length; i++) {
+            if (t >= cues[i].start && t < cues[i].end) {
+              current = cueEls[i];
+              break;
+            }
+          }
           if (current !== activeEl) {
-            activeEl?.classList.remove('active');
-            current?.classList.add('active');
+            if (activeEl) activeEl.classList.remove('active');
             if (current) {
+              current.classList.add('active');
               current.scrollIntoView({ block: 'center', behavior: 'smooth' });
             }
             activeEl = current;
           }
         });
       }
-    </script>
-  )}
+    }
+  </script>
 </Layout>
