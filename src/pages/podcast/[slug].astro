@@ -1,0 +1,66 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const episodes = await getCollection('podcast');
+  return episodes.map((ep) => ({
+    params: { slug: ep.slug },
+    props: { ep },
+  }));
+}
+
+const { ep } = Astro.props;
+const { Content } = await render(ep);
+
+function formatDuration(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+---
+<Layout title={`${ep.data.title} — Better World With Design`}>
+  <a href="/" style="font-size: 0.85rem; color: var(--warm-gray);">&larr; All episodes</a>
+
+  <div style="display: flex; gap: 1.5rem; margin: 1.5rem 0 2rem; align-items: flex-start;">
+    <img
+      src={ep.data.imageUrl}
+      alt=""
+      width="140"
+      height="140"
+      style="border-radius: 6px; object-fit: cover; border: 1px solid var(--parchment-dark); flex-shrink: 0;"
+    />
+    <div>
+      <div style="font-size: 0.8rem; color: var(--brass); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;">
+        Episode {ep.data.episodeNumber}
+      </div>
+      <h1 style="font-size: 1.6rem; margin: 0.25rem 0 0.5rem; line-height: 1.25;">{ep.data.title}</h1>
+      <div style="font-size: 0.85rem; color: var(--warm-gray);">
+        {new Date(ep.data.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        {' · '}{formatDuration(ep.data.durationSeconds)}
+      </div>
+    </div>
+  </div>
+
+  <audio controls style="width: 100%; margin-bottom: 2rem;">
+    <source src={ep.data.audioUrl} type="audio/mpeg" />
+    Your browser doesn't support embedded audio.
+    <a href={ep.data.audioUrl}>Download the episode</a> instead.
+  </audio>
+
+  {ep.data.needsReview && (
+    <div style="background: #fdf3e0; border: 1px solid var(--brass); border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 2rem; font-size: 0.85rem;">
+      ⚠ Editorial note: this episode has placeholder links pending — not final copy.
+    </div>
+  )}
+
+  <div class="episode-body">
+    <Content />
+  </div>
+
+  {ep.data.transcriptUrl && (
+    <p style="margin-top: 2rem;">
+      <a href={ep.data.transcriptUrl}>Read the full transcript &rarr;</a>
+    </p>
+  )}
+</Layout>
