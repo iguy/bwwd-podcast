@@ -1,6 +1,6 @@
 ---
 title: "Thinking, Fast and Slow: The Two Systems Running Your Life"
-episodeNumber: 18
+episodeNumber: 19
 pubDate: "2026-04-30"
 durationSeconds: 1881
 audioUrl: "https://media.transistor.fm/f706bdff/24bd655f.mp3"

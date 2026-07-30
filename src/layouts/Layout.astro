@@ -21,8 +21,9 @@ const { title, description = "Better World With Design — a podcast on design, 
       --forest: #2f4538;
       --parchment: #e9e2d3;
       --parchment-dark: #ded4bf;
-      --warm-gray: #6b6459;
-      --brass: #a8834a;
+      --warm-gray: #4a443b;
+      --brass: #7a5518;
+      --brass-decorative: #a8834a;
       --font-display: "Fraunces", serif;
       --font-body: "Source Serif 4", serif;
     }
@@ -70,7 +71,9 @@ const { title, description = "Better World With Design — a podcast on design, 
       <a href="/">Better World With Design</a>
       <span>the podcast</span>
     </div>
-    <slot />
+    <main>
+      <slot />
+    </main>
   </div>
 </body>
 </html>
