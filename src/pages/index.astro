@@ -11,39 +11,145 @@ function formatDuration(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
+
+function excerpt(body: string) {
+  const stripped = body
+    .replace(/[#*_>\-]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+  return stripped.length > 165 ? stripped.slice(0, 165).trim() + '…' : stripped;
+}
+
+const milestones = [
+  { label: 'First Episode', detail: 'June 2025' },
+  { label: '10 Episodes', detail: 'Published' },
+  { label: '500 Downloads', detail: 'And climbing' },
+  { label: '50 Countries', detail: 'Listening in' },
+  { label: '1 Year', detail: 'On air' },
+];
 ---
 <Layout title="Better World With Design — Podcast">
-  <h1 style="font-size: 2.1rem; margin-bottom: 0.25rem;">Every episode</h1>
-  <p style="color: var(--warm-gray); margin-top: 0; margin-bottom: 2.5rem;">
-    Design, music, photography, and the arts — {episodes.length} episodes and counting.
-  </p>
+  <h1 class="title">Every episode</h1>
+  <p class="subtitle">Design, music, photography, and the arts — {episodes.length} episodes and counting.</p>
 
-  <ul style="list-style: none; padding: 0; margin: 0;">
-    {episodes.map((ep) => (
-      <li style="display: flex; gap: 1.25rem; padding: 1.25rem 0; border-bottom: 1px solid var(--parchment-dark);">
-        <img
-          src={ep.data.imageUrl}
-          alt=""
-          width="72"
-          height="72"
-          style="border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--parchment-dark);"
-          loading="lazy"
-        />
-        <div style="min-width: 0;">
-          <div style="font-size: 0.75rem; color: var(--brass); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;">
-            Episode {ep.data.episodeNumber}
+  <div class="milestones" role="list" aria-label="Podcast milestones">
+    {milestones.map((m) => (
+      <div class="stamp" role="listitem">
+        <span class="stamp-label">{m.label}</span>
+        <span class="stamp-detail">{m.detail}</span>
+      </div>
+    ))}
+  </div>
+
+  <div class="entries">
+    {episodes.map((ep, i) => (
+      <a class="entry" style={`--tilt: ${i % 2 === 0 ? '-0.4deg' : '0.5deg'}`} href={`/podcast/${ep.slug}`}>
+        <div class="entry-summary">
+          <div class="art-frame">
+            <img src={ep.data.imageUrl} alt="" width="128" height="128" loading="lazy" />
           </div>
-          <h2 style="font-size: 1.1rem; margin: 0.15rem 0 0.35rem; line-height: 1.3;">
-            <a href={`/podcast/${ep.slug}`} style="text-decoration: none; color: var(--ink);">
-              {ep.data.title}
-            </a>
-          </h2>
-          <div style="font-size: 0.85rem; color: var(--warm-gray);">
-            {new Date(ep.data.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-            {' · '}{formatDuration(ep.data.durationSeconds)}
+          <div class="entry-meta">
+            <div class="seal">{ep.data.episodeNumber}</div>
+            <h2>{ep.data.title}</h2>
+            <div class="date-line">
+              {new Date(ep.data.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {' · '}{formatDuration(ep.data.durationSeconds)}
+            </div>
+            <p class="excerpt">{excerpt(ep.body || '')}</p>
+            <span class="expand-cue">Listen to this episode <span class="chevron">&rarr;</span></span>
           </div>
         </div>
-      </li>
+      </a>
     ))}
-  </ul>
+  </div>
+
+  <style>
+    .title { font-size: 2.1rem; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--warm-gray); margin-top: 0; margin-bottom: 2rem; }
+
+    .milestones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.75rem;
+      border-bottom: 1px solid var(--parchment-dark);
+    }
+    .stamp {
+      border: 2px solid var(--deep-blue);
+      border-radius: 999px;
+      padding: 0.4rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.15;
+      transform: rotate(-1.5deg);
+      background: rgba(30, 58, 76, 0.04);
+    }
+    .stamp:nth-child(even) { transform: rotate(1.5deg); border-color: var(--forest); }
+    .stamp-label { font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; color: var(--deep-blue); }
+    .stamp:nth-child(even) .stamp-label { color: var(--forest); }
+    .stamp-detail { font-size: 0.68rem; color: var(--warm-gray); text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .entries { display: block; }
+    .entry {
+      display: block;
+      background: #fff9ee;
+      border: 1px solid var(--parchment-dark);
+      border-radius: 6px;
+      margin-bottom: 1.1rem;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      transform: rotate(var(--tilt));
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+      color: inherit;
+      padding: 1.1rem;
+    }
+    .entry:hover { transform: rotate(0deg); box-shadow: 0 6px 16px rgba(28,43,51,0.12); }
+    .entry-summary { display: flex; gap: 1.15rem; }
+    .art-frame {
+      flex-shrink: 0;
+      padding: 5px;
+      background: #fff;
+      border: 1px solid var(--parchment-dark);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      transform: rotate(-2deg);
+      height: fit-content;
+    }
+    .entry:nth-child(even) .art-frame { transform: rotate(2deg); }
+    .art-frame img { display: block; width: 96px; height: 96px; object-fit: cover; }
+    .entry-meta { min-width: 0; position: relative; }
+    .seal {
+      position: absolute;
+      top: -0.2rem;
+      right: 0;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: var(--deep-blue);
+      color: #fdf6e8;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(8deg);
+    }
+    .entry:nth-child(even) .seal { background: var(--forest); transform: rotate(-6deg); }
+    h2 { font-size: 1.12rem; margin: 0 2.4rem 0.3rem 0; line-height: 1.3; color: var(--ink); }
+    .date-line { font-size: 0.82rem; color: var(--warm-gray); margin-bottom: 0.5rem; }
+    .excerpt { font-size: 0.92rem; color: var(--ink); margin: 0 0 0.5rem; }
+    .expand-cue {
+      font-family: var(--font-hand);
+      font-size: 1.05rem;
+      color: var(--brass);
+    }
+
+    @media (max-width: 480px) {
+      .entry-summary { flex-direction: column; }
+      .art-frame img { width: 100%; height: auto; aspect-ratio: 1; }
+      h2 { margin-right: 2.4rem; }
+    }
+  </style>
 </Layout>
