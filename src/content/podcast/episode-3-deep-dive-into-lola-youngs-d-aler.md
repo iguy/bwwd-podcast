@@ -6,6 +6,7 @@ durationSeconds: 1064
 audioUrl: "https://media.transistor.fm/dc647e17/b6b2f010.mp3"
 imageUrl: "https://img.transistorcdn.com/yJPutLmJRUmDF60ZYzXO5859pYLF7udN53dkJuxID5Q/rs:fill:0:0:1/w:1400/h:1400/q:60/mb:500000/aHR0cHM6Ly9pbWct/dXBsb2FkLXByb2R1/Y3Rpb24udHJhbnNp/c3Rvci5mbS8wNzA0/YmJmZDYyNjZmNmRm/N2NkZTNkZjVkOTgx/NzMzOC5qcGVn.jpg"
 transcriptUrl: "https://share.transistor.fm/s/dc647e17/transcription.txt"
+transcriptVttUrl: "https://share.transistor.fm/s/dc647e17/transcription.vtt"
 keywords:
   - "addiction"
   - "emotional dependency"

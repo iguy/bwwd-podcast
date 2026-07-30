@@ -10,6 +10,7 @@ const podcast = defineCollection({
     audioUrl: z.string().url(),
     imageUrl: z.string().url(),
     transcriptUrl: z.string().url().optional(),
+    transcriptVttUrl: z.string().url().optional(),
     keywords: z.array(z.string()),
     needsReview: z.boolean().optional(),
   }),

@@ -18,38 +18,78 @@ function formatDuration(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
+
+// Parse a WebVTT time string ("00:01:02.500" or "01:02.500") into seconds
+function vttTimeToSeconds(t: string) {
+  const parts = t.trim().split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parts[0] || 0;
+}
+
+function parseVtt(raw: string) {
+  const blocks = raw.replace(/\r/g, '').split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  const cues: { start: number; end: number; text: string }[] = [];
+  for (const block of blocks) {
+    const lines = block.split('\n');
+    const timeLine = lines.find(l => l.includes('-->'));
+    if (!timeLine) continue;
+    const [startRaw, endRaw] = timeLine.split('-->').map(s => s.trim().split(' ')[0]);
+    const textLines = lines.slice(lines.indexOf(timeLine) + 1);
+    const text = textLines.join(' ').replace(/<[^>]+>/g, '').trim();
+    if (text) {
+      cues.push({ start: vttTimeToSeconds(startRaw), end: vttTimeToSeconds(endRaw), text });
+    }
+  }
+  return cues;
+}
+
+// Fetch transcript content at build time. Wrapped in try/catch so a
+// network hiccup or moved file doesn't break the whole build.
+let plainTranscript: string | null = null;
+let cues: { start: number; end: number; text: string }[] | null = null;
+
+if (ep.data.transcriptVttUrl) {
+  try {
+    const res = await fetch(ep.data.transcriptVttUrl);
+    if (res.ok) cues = parseVtt(await res.text());
+  } catch (e) {
+    console.warn(`Could not fetch VTT transcript for ${ep.slug}:`, e);
+  }
+}
+
+if (!cues && ep.data.transcriptUrl) {
+  try {
+    const res = await fetch(ep.data.transcriptUrl);
+    if (res.ok) plainTranscript = await res.text();
+  } catch (e) {
+    console.warn(`Could not fetch transcript for ${ep.slug}:`, e);
+  }
+}
 ---
 <Layout title={`${ep.data.title} — Better World With Design`}>
-  <a href="/" style="font-size: 0.85rem; color: var(--warm-gray);">&larr; All episodes</a>
+  <a href="/" class="back-link">&larr; All episodes</a>
 
-  <div style="display: flex; gap: 1.5rem; margin: 1.5rem 0 2rem; align-items: flex-start;">
-    <img
-      src={ep.data.imageUrl}
-      alt=""
-      width="140"
-      height="140"
-      style="border-radius: 6px; object-fit: cover; border: 1px solid var(--parchment-dark); flex-shrink: 0;"
-    />
+  <div class="header">
+    <img src={ep.data.imageUrl} alt="" width="140" height="140" class="cover" />
     <div>
-      <div style="font-size: 0.8rem; color: var(--brass); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;">
-        Episode {ep.data.episodeNumber}
-      </div>
-      <h1 style="font-size: 1.6rem; margin: 0.25rem 0 0.5rem; line-height: 1.25;">{ep.data.title}</h1>
-      <div style="font-size: 0.85rem; color: var(--warm-gray);">
+      <div class="eyebrow">Episode {ep.data.episodeNumber}</div>
+      <h1 class="ep-title">{ep.data.title}</h1>
+      <div class="meta">
         {new Date(ep.data.pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         {' · '}{formatDuration(ep.data.durationSeconds)}
       </div>
     </div>
   </div>
 
-  <audio controls style="width: 100%; margin-bottom: 2rem;">
+  <audio controls id="ep-audio" class="player">
     <source src={ep.data.audioUrl} type="audio/mpeg" />
     Your browser doesn't support embedded audio.
     <a href={ep.data.audioUrl}>Download the episode</a> instead.
   </audio>
 
   {ep.data.needsReview && (
-    <div style="background: #fdf3e0; border: 1px solid var(--brass); border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 2rem; font-size: 0.85rem;">
+    <div class="review-note">
       ⚠ Editorial note: this episode has placeholder links pending — not final copy.
     </div>
   )}
@@ -58,9 +98,100 @@ function formatDuration(seconds: number) {
     <Content />
   </div>
 
-  {ep.data.transcriptUrl && (
-    <p style="margin-top: 2rem;">
+  {cues && (
+    <details class="transcript-accordion" open>
+      <summary>Transcript <span class="sync-badge">synced to playback</span></summary>
+      <div class="transcript-body" id="transcript-cues">
+        {cues.map((cue, i) => (
+          <span class="cue" data-start={cue.start} data-end={cue.end}>{cue.text} </span>
+        ))}
+      </div>
+    </details>
+  )}
+
+  {!cues && plainTranscript && (
+    <details class="transcript-accordion">
+      <summary>Transcript</summary>
+      <div class="transcript-body plain">{plainTranscript}</div>
+    </details>
+  )}
+
+  {!cues && !plainTranscript && ep.data.transcriptUrl && (
+    <p class="fallback-link">
       <a href={ep.data.transcriptUrl}>Read the full transcript &rarr;</a>
     </p>
+  )}
+
+  <style>
+    .back-link { font-size: 0.85rem; color: var(--warm-gray); text-decoration: none; }
+    .header { display: flex; gap: 1.5rem; margin: 1.5rem 0 2rem; align-items: flex-start; }
+    .cover { border-radius: 6px; object-fit: cover; border: 1px solid var(--parchment-dark); flex-shrink: 0; }
+    .eyebrow { font-size: 0.8rem; color: var(--brass); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+    .ep-title { font-size: 1.6rem; margin: 0.25rem 0 0.5rem; line-height: 1.25; }
+    .meta { font-size: 0.85rem; color: var(--warm-gray); }
+    .player { width: 100%; margin-bottom: 2rem; }
+    .review-note { background: #fdf3e0; border: 1px solid var(--brass); border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 2rem; font-size: 0.85rem; }
+    .fallback-link { margin-top: 2rem; }
+
+    .transcript-accordion {
+      margin-top: 2.5rem;
+      border: 1px solid var(--parchment-dark);
+      border-radius: 6px;
+      background: #fff9ee;
+    }
+    .transcript-accordion summary {
+      cursor: pointer;
+      padding: 0.9rem 1.1rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .sync-badge {
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: var(--forest);
+      background: rgba(47,69,56,0.08);
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+    }
+    .transcript-body {
+      padding: 0 1.1rem 1.1rem;
+      border-top: 1px dashed var(--parchment-dark);
+      max-height: 420px;
+      overflow-y: auto;
+      font-size: 0.92rem;
+    }
+    .transcript-body.plain { white-space: pre-wrap; padding-top: 1rem; }
+    .cue { transition: background-color 0.2s ease; border-radius: 3px; padding: 0.05rem 0; }
+    .cue.active { background-color: rgba(168, 131, 74, 0.35); }
+  </style>
+
+  {cues && (
+    <script>
+      const audio = document.getElementById('ep-audio') as HTMLAudioElement | null;
+      const cueEls = Array.from(document.querySelectorAll<HTMLElement>('#transcript-cues .cue'));
+      if (audio && cueEls.length) {
+        let activeEl: HTMLElement | null = null;
+        audio.addEventListener('timeupdate', () => {
+          const t = audio.currentTime;
+          const current = cueEls.find(el => {
+            const start = parseFloat(el.dataset.start || '0');
+            const end = parseFloat(el.dataset.end || '0');
+            return t >= start && t < end;
+          }) || null;
+          if (current !== activeEl) {
+            activeEl?.classList.remove('active');
+            current?.classList.add('active');
+            if (current) {
+              current.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+            activeEl = current;
+          }
+        });
+      }
+    </script>
   )}
 </Layout>
