@@ -83,10 +83,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       text-decoration: none;
       letter-spacing: 0.01em;
     }
-    .masthead span {
+    .masthead a.masthead-sub {
       font-family: var(--font-hand);
       font-size: 1.35rem;
       color: var(--deep-blue);
+      font-weight: 400;
+      letter-spacing: 0;
       transform: rotate(-2deg);
       display: inline-block;
     }
@@ -96,8 +98,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 <body>
   <div class="wrap">
     <div class="masthead">
-      <a href="/">Better World With Design</a>
-      <span>the podcast</span>
+      <a href="https://betterworldwithdesign.com/">Better World With Design</a>
+      <a href="/" class="masthead-sub">the podcast</a>
     </div>
     <main>
       <slot />
