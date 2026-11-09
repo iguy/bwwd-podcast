@@ -26,7 +26,18 @@ const milestones = [
   { label: '1 Year', detail: 'On air' },
 ];
 ---
-<Layout title="Better World With Design — Podcast">
+<Layout
+  title="Better World With Design — Podcast"
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'PodcastSeries',
+    name: 'Better World With Design',
+    url: 'https://podcast.betterworldwithdesign.com/',
+    webFeed: 'https://feeds.transistor.fm/better-world-with-design',
+    author: { '@type': 'Person', name: 'Gary Crossey' },
+    description: 'Design, music, photography, and the arts — book reviews, music deep dives, and readings by Gary Crossey.',
+  }}
+>
   <h1 class="title">Every episode</h1>
   <p class="subtitle">Design, music, photography, and the arts — {episodes.length} episodes and counting.</p>
 

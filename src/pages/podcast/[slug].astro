@@ -44,6 +44,31 @@ function parseVtt(raw: string) {
   return cues;
 }
 
+// SEO: page description and PodcastEpisode structured data
+const plainBody = (ep.body || '').replace(/[*_#>`]/g, '').replace(/\s+/g, ' ').trim();
+const metaDescription = plainBody.length > 160 ? plainBody.slice(0, 157).trim() + '…' : plainBody;
+const pageUrl = new URL(`/podcast/${ep.slug}`, Astro.site).href;
+const episodeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'PodcastEpisode',
+  name: ep.data.title,
+  url: pageUrl,
+  episodeNumber: ep.data.episodeNumber,
+  datePublished: ep.data.pubDate,
+  description: metaDescription,
+  image: ep.data.imageUrl,
+  timeRequired: `PT${Math.round(ep.data.durationSeconds / 60)}M`,
+  keywords: ep.data.keywords.join(', '),
+  author: { '@type': 'Person', name: 'Gary Crossey' },
+  associatedMedia: { '@type': 'MediaObject', contentUrl: ep.data.audioUrl, encodingFormat: 'audio/mpeg' },
+  partOfSeries: {
+    '@type': 'PodcastSeries',
+    name: 'Better World With Design',
+    url: new URL('/', Astro.site).href,
+    webFeed: 'https://feeds.transistor.fm/better-world-with-design',
+  },
+};
+
 // Fetch transcript content at build time. Wrapped in try/catch so a
 // network hiccup or moved file doesn't break the whole build.
 let plainTranscript: string | null = null;
@@ -71,7 +96,13 @@ if (!cues && ep.data.transcriptUrl) {
 // them as DOM data-attributes we'd have to re-parse unreliably).
 const cuesJson = cues ? JSON.stringify(cues) : 'null';
 ---
-<Layout title={`${ep.data.title} — Better World With Design`}>
+<Layout
+  title={`${ep.data.title} — Better World With Design`}
+  description={metaDescription}
+  image={ep.data.imageUrl}
+  type="article"
+  jsonLd={episodeSchema}
+>
   <a href="/" class="back-link">&larr; All episodes</a>
 
   <div class="header">
