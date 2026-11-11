@@ -102,6 +102,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     }
     h1, h2, h3 { font-family: var(--font-display); color: var(--ink); }
   </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-02EPG8KK2Y"></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-02EPG8KK2Y');
+  </script>
 </head>
 <body>
   <div class="wrap">
