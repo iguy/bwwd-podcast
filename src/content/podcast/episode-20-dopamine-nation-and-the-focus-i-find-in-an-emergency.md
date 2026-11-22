@@ -4,7 +4,7 @@ episodeNumber: 20
 pubDate: "2026-11-21"
 durationSeconds: 2205
 audioUrl: "https://media.transistor.fm/9c268b6c/b9dc9847.mp3"
-imageUrl: "https://img.transistorcdn.com/AiSBbNgfY1o9ez0cBYf6g_Oh3xJ3mRXTMydb2cxUGu0/rs:fill:0:0:1/w:800/h:800/q:60/mb:500000/aHR0cHM6Ly9pbWct/dXBsb2FkLXByb2R1/Y3Rpb24udHJhbnNp/c3Rvci5mbS9hMDNi/YTdlMDM3M2QyMzgy/OTg3ZTQ3ZTRkNDZm/Y2FiOC5wbmc.jpg"
+imageUrl: "https://img.transistorcdn.com/AiSBbNgfY1o9ez0cBYf6g_Oh3xJ3mRXTMydb2cxUGu0/rs:fill:0:0:1/w:1400/h:1400/q:60/mb:500000/aHR0cHM6Ly9pbWct/dXBsb2FkLXByb2R1/Y3Rpb24udHJhbnNp/c3Rvci5mbS9hMDNi/YTdlMDM3M2QyMzgy/OTg3ZTQ3ZTRkNDZm/Y2FiOC5wbmc.jpg"
 transcriptUrl: "https://share.transistor.fm/s/9c268b6c/transcript.txt"
 keywords:
   - "dopamine nation"
